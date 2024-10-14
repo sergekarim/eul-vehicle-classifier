@@ -34,9 +34,13 @@ CONFUSION_IMAGE_PATH = os.path.join(RESULT_PATH, 'confusion_matrix.png')
 def generate_data_paths(data_dir):
     filepaths, labels = [], []
     for fold in os.listdir(data_dir):
+        if fold.startswith('.'):  # Skip hidden files/folders
+            continue
         foldpath = os.path.join(data_dir, fold)
         if os.path.isdir(foldpath):
             for file in os.listdir(foldpath):
+                if file.startswith('.'):  # Skip hidden files
+                    continue
                 filepaths.append(os.path.join(foldpath, file))
                 labels.append(fold)
     return filepaths, labels
@@ -55,6 +59,7 @@ def dataset_info(df, name='Dataset'):
 # Model creation function
 def create_model(input_shape, num_classes):
     base_model = tf.keras.applications.EfficientNetB0(include_top=False, weights="imagenet", input_shape=input_shape, pooling='max')
+    # base_model = tf.keras.applications.ResNet50(include_top=False, weights="imagenet", input_shape=input_shape, pooling='max')
     base_model.trainable = False
 
     model = Sequential([
@@ -69,6 +74,8 @@ def create_model(input_shape, num_classes):
     ])
 
     model.compile(optimizer=Adamax(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+    # Print the model summary
+    model.summary()
     return model
 
 # Function for plotting training history
@@ -76,26 +83,25 @@ def plot_history(history):
     epochs = range(1, len(history.history['accuracy']) + 1)
     plt.figure(figsize=(12, 5))
 
+    # Plot for loss
     plt.subplot(1, 2, 1)
     plt.plot(epochs, history.history['loss'], label='Training Loss')
     plt.plot(epochs, history.history['val_loss'], label='Validation Loss')
+    plt.title('Training and Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
     plt.legend()
     plt.savefig(LOSS_IMAGE_PATH)
 
+    # Plot for accuracy
     plt.subplot(1, 2, 2)
     plt.plot(epochs, history.history['accuracy'], label='Training Accuracy')
     plt.plot(epochs, history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Training and Validation Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
     plt.legend()
     plt.savefig(ACC_IMAGE_PATH)
-    # plt.show()
-
-# learning rate scheduler function
-def step_decay(epoch):
-    initial_lrate = 0.1
-    drop = 0.5
-    epochs_drop = 10.0
-    lrate = initial_lrate * math.pow(drop, math.floor((1 + epoch) / epochs_drop))
-    return lrate
 
 # This function which will be used in image data generator for data augmentation, it just take the image and return it again.
 def scalar(img):
@@ -150,9 +156,6 @@ def train_model():
 
     # Callbacks
     model_checkpoint = ModelCheckpoint(CHECKPOINT_PATH, monitor='val_loss', save_best_only=True)
-    early_stopping = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True,mode='max')
-
-    lr_scheduler = LearningRateScheduler(step_decay)
 
     # Train the model
     history = model.fit(x=train_gen,
@@ -160,8 +163,8 @@ def train_model():
                         validation_data=valid_gen,
                         validation_steps= None,
                         shuffle= False,
-                        callbacks=[model_checkpoint],
                         batch_size= batch_size,
+                        callbacks=[model_checkpoint],
                         verbose=1)
 
     plot_history(history)
@@ -187,7 +190,6 @@ def train_model():
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.savefig(CONFUSION_IMAGE_PATH)
-    # plt.show()
 
 if __name__ == "__main__":
     train_model()

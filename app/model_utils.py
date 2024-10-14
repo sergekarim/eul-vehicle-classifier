@@ -1,4 +1,3 @@
-from tensorflow.keras.models import load_model
 import numpy as np
 from tensorflow.keras.applications.efficientnet import preprocess_input
 import tensorflow as tf
@@ -61,7 +60,6 @@ def save_predicted_image(file,predicted_class_label,prediction_confidence):
     PREDICTED_IMAGE_PATH = os.path.join(PREDICTED_DIR, random_image_name)
 
     # Save the figure to the specified path
-    plt.savefig(PREDICTED_IMAGE_PATH, bbox_inches='tight', pad_inches=0)
+    plt.savefig(PREDICTED_IMAGE_PATH, bbox_inches='tight', pad_inches=0.15)
     plt.close()  # Close the figure to release memory
 
-    print(f"Image saved to: {PREDICTED_IMAGE_PATH}")

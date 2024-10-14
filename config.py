@@ -10,6 +10,6 @@ PREDICTED_DIR = os.path.join(RESULT_PATH, 'predicted')
 
 # Callbacks settings
 CHECKPOINT_PATH = os.path.join(RESULT_PATH, "best_model.keras")
-EPOCHS = 30
+EPOCHS = 100
 BATCH_SIZE= 16
-CLASSES = ['Bus', 'Car','Motorcycle', 'SmallTruck', 'Truck']
+CLASSES = ['Bus', 'Car','LargeTruck', 'Motorcycle', 'SmallTruck']
